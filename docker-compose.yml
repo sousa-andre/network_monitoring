@@ -1,0 +1,12 @@
+services:
+  tsdb:
+    image: influxdb:1.8.10
+    networks:
+      - default
+    ports:
+      - "8086:8086"
+
+
+networks:
+  default:
+    driver: bridgegit i
