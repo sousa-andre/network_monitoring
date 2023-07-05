@@ -10,14 +10,24 @@ def main():
 
     bpf = BPF('bpf.c')
 
-    accept4_fnname = bpf.get_syscall_fnname('accept4')
+    accept4_fnname = bpf.get_syscall_fnname('accept')
     bpf.attach_kprobe(
         event=accept4_fnname,
         fn_name='syscall__accept4'
     )
 
+    accept_fnname = bpf.get_syscall_fnname('accept')
+    bpf.attach_kprobe(
+        event=accept_fnname,
+        fn_name='syscall__accept4'
+    )
+
     bpf.attach_kretprobe(
         event=accept4_fnname,
+        fn_name='syscall__ret_accept4'
+    )
+    bpf.attach_kprobe(
+        event=accept_fnname,
         fn_name='syscall__ret_accept4'
     )
 

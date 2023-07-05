@@ -1,7 +1,7 @@
 #include <uapi/linux/ptrace.h>
 #include <linux/socket.h>
 
-#define PID 146944
+#define PID 381815
 
 // https://github.com/openbsd/src/blob/master/sys/sys/_types.h#L61
 // https://github.com/pixie-io/pixie/blob/main/src/stirling/source_connectors/socket_tracer/bcc_bpf/socket_trace.c
@@ -39,25 +39,33 @@ void syscall__accept4(
         .addr = addr,
     };
 
-    if (id == PID) {
-        bpf_trace_printk("sockfd: %d", sockfd);
+    //if (id == PID) {
+       // bpf_trace_printk("sockfd: %d,%d", id, PID);
         addr_in_s.update(&id, &accept_arg);
-    }
+    //}
     // https://github.com/torvalds/linux/blob/master/include/linux/socket.h#L191
 }
 
 void syscall__ret_accept4(struct pt_regs *ctx) {
     u32 id = bpf_get_current_pid_tgid() >> 32;
+    bpf_trace_printk("sup");
+    bpf_trace_printk("sup2");
+
     struct accept_sys_args *accept = addr_in_s.lookup(&id);
     if (accept == NULL) {
+        bpf_trace_printk("not found");
         return;
     }
 
+    bpf_trace_printk("sup3");
+
     struct sockaddr addr_n = {};
      bpf_probe_read_user(&addr_n, sizeof(addr_n), accept->addr);
+
+      bpf_trace_printk("sockfd: %d %d", addr_n.sa_family, AF_INET);
      if (accept->addr != NULL) return;
 
-     bpf_trace_printk("sockfd: %d %d", addr_n.sa_family, AF_INET);
+    // bpf_trace_printk("sockfd: %d %d", addr_n.sa_family, AF_INET);
 }
 
 
@@ -71,7 +79,7 @@ void syscall__read(struct pt_regs *ctx, int fd, void* buff, size_t count) {
      }
 
      //if (id  == 114672) {
-         //bpf_trace_printk("here %d", id);
+         bpf_trace_printk("here %d", id);
     //}
 
     struct accept_return ret = {.request = *(char*)buff};

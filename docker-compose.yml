@@ -1,11 +1,17 @@
 services:
   tsdb:
+    container_name: influx
     image: influxdb:1.8.10
     networks:
       - default
     ports:
       - "8086:8086"
-
+  chronograf:
+    image: chronograf:1.8.10
+    networks:
+      - default
+    ports:
+      - "8888:8888"
 
 networks:
   default:
