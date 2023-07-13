@@ -1,12 +1,15 @@
+from time import time_ns
+
 from sqlalchemy.orm import Session
 
 from tracer.bpf.kprobe import KProbe
 from tracer.bpf.program import Program
 from tracer.db.connections.connection import engine
 from tracer.parser.request_parser import parse_request
+from tracer.utils.nanoseconds_splitter import nanoseconds_splitter
 
 bpf_program = Program('bpf.c', {
-    'PID': '42823'
+    'PID': '71018'
 })
 
 bpf_program.attach_kprobes([
@@ -20,13 +23,18 @@ bpf_program.attach_kprobes([
 def eevent(cpu, data, size):
     event = bpf_program._bpf["events"].event(data)
     raw_data = event.request.decode('utf-8')
-    print('cpu', cpu, size)
-    print('Raw data', event.request, event.time, int(event.time / 1e9))
+    print('Raw data', event.request, event.time_diff)
 
     with Session(engine) as session:
         request = parse_request(raw_data)
 
         request_ent = request.to_request_entity()
+
+        s, ns = nanoseconds_splitter(time_ns())
+
+        request_ent.timestamp_seconds = s
+        request_ent.timestamp_nanoseconds = ns
+        request_ent.read_delta_nanoseconds = event.time_diff
 
         headers_ent = request.to_header_entities()
         for header_ent in headers_ent:

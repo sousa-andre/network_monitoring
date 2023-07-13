@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, BigInteger
 
 from tracer.db.entities.base import Base
 
@@ -10,4 +10,6 @@ class RequestEntity(Base):
     method = Column(String, nullable=False)
     path = Column(String, nullable=False)
     body = Column(String)
-    start_time = Column(Integer)
+    timestamp_seconds = Column(BigInteger, nullable=False)
+    timestamp_nanoseconds = Column(Integer, nullable=False)
+    read_delta_nanoseconds = Column(Integer)

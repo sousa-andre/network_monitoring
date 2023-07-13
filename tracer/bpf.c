@@ -12,10 +12,11 @@
 
 struct accept_sys_args {
     struct sockaddr* addr;
+    u64 accept_ts;
 };
 
 struct accept_return {
-    u64 time;
+    u64 time_diff;
     char request[1024];
     unsigned int size;
 };
@@ -39,6 +40,7 @@ void syscall__accept4(
     // struct sockaddr_in* addr_in = (struct sockaddr_in*) addr;
     struct accept_sys_args accept_arg = {
         .addr = addr,
+        .accept_ts = bpf_ktime_get_ns()
     };
 
     if (id == PID) {
@@ -48,27 +50,12 @@ void syscall__accept4(
     // https://github.com/torvalds/linux/blob/master/include/linux/socket.h#L191
 }
 
-void syscall__ret_accept4(struct pt_regs *ctx) {
-    u32 id = bpf_get_current_pid_tgid() >> 32;
-
-    struct accept_sys_args *accept = addr_in_s.lookup(&id);
-    if (accept == NULL) {
-        return;
-    }
-
-    struct sockaddr addr_n = {};
-
-    bpf_probe_read_user(&addr_n, sizeof(addr_n), accept->addr);
-    if (accept->addr != NULL) return;
-}
-
-
 // https://man7.org/linux/man-pages/man2/read.2.html
 void syscall__read(struct pt_regs *ctx, int fd, void* buff, size_t count) {
     u32 id = bpf_get_current_pid_tgid() >> 32;
     u32 index = 0;
 
-    void* lookup_res = addr_in_s.lookup(&id);
+    struct accept_sys_args* lookup_res = addr_in_s.lookup(&id);
      if(lookup_res == NULL) {
          return;
      }
@@ -79,10 +66,7 @@ void syscall__read(struct pt_regs *ctx, int fd, void* buff, size_t count) {
     }
 
     ret->size = count;
-    // ret->time = bpf_ktime_get_ns();
-    struct timespec64 ts;
-    bpf_ktime_get_real_ts64(&ts);
-    ret->time = bpf_ktime_get_ns();
+    ret->time_diff = bpf_ktime_get_ns() - lookup_res->accept_ts;
     bpf_probe_read_user(ret->request, sizeof(ret->request), buff);
     events.perf_submit(ctx, ret, sizeof(struct accept_return));
 }
