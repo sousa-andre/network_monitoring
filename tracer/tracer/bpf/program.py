@@ -1,3 +1,4 @@
+from os import path, getcwd
 from typing import Any, Dict, List
 
 from bcc import BPF
@@ -14,7 +15,7 @@ class Program:
 
     @staticmethod
     def process_file(file_path, variables):
-        with open(file_path, 'r') as bpf_code:
+        with open(path.join(path.dirname(__file__), '..', file_path), 'r') as bpf_code:
             content = bpf_code.read()
             for key, value in variables.items():
                 content = content.replace(f'#{key}#', value)

@@ -48,4 +48,5 @@ def eevent(cpu, data, size):
         session.commit()
 
 
+print('Running bcc')
 bpf_program.poll_perf()

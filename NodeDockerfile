@@ -1,6 +1,6 @@
 FROM node:20.4.0-alpine3.18
 WORKDIR /app .
-COPY . .
+COPY api/node .
 EXPOSE 8081
 RUN npm install
 CMD npm start

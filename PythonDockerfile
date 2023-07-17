@@ -1,0 +1,10 @@
+FROM python:3.8.17-alpine
+WORKDIR /app .
+COPY ./tracer/ ./tracer
+COPY api/python .
+EXPOSE 8082
+RUN apk add bcc-tools bcc-doc
+RUN pip install -r tracer/tracer/requirements.txt
+RUN pip install uvicorn
+RUN pip install -r requirements.txt
+CMD ls /usr/share/bcc/tools; uvicorn main:app & sleep 5; python -m tracer.tracer.main $(pgrep uvicorn)
