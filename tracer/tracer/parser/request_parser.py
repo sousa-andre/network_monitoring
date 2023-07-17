@@ -1,6 +1,6 @@
 from typing import List
 
-from tracer.parser.request import Request
+from tracer.tracer.parser.request import Request
 
 
 def parse_request_header_until_body(lines: List[str]):

@@ -1,7 +1,7 @@
 import unittest
 
-from tracer.parser.request import Request
-from tracer.parser.request_parser import parse_request
+from tracer.tracer.parser.request import Request
+from tracer.tracer.parser.request_parser import parse_request
 
 
 class TestRequestParser(unittest.TestCase):

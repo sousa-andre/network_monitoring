@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import Dict, Optional
 
-from tracer.db.entities.header_entity import HeaderEntity
-from tracer.db.entities.request_entity import RequestEntity
+from tracer.tracer.db.entities.header_entity import HeaderEntity
+from tracer.tracer.db.entities.request_entity import RequestEntity
 
 
 @dataclass

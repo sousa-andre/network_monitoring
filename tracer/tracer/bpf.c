@@ -22,11 +22,10 @@ struct accept_return {
 };
 
 BPF_HASH(addr_in_s, u32, struct accept_sys_args);
-BPF_PERF_OUTPUT(events);
 BPF_ARRAY(returns, struct accept_return, 1);
+BPF_PERF_OUTPUT(events);
 
 
-// https://man7.org/linux/man-pages/man2/accept.2.html
 void syscall__accept4(
     struct pt_regs *ctx,
     int sockfd,
@@ -44,13 +43,11 @@ void syscall__accept4(
     };
 
     if (id == PID) {
-        bpf_trace_printk("inside pid condition: %d,%d, %d", id, PID, sockfd);
         addr_in_s.update(&id, &accept_arg);
     }
     // https://github.com/torvalds/linux/blob/master/include/linux/socket.h#L191
 }
 
-// https://man7.org/linux/man-pages/man2/read.2.html
 void syscall__read(struct pt_regs *ctx, int fd, void* buff, size_t count) {
     u32 id = bpf_get_current_pid_tgid() >> 32;
     u32 index = 0;
@@ -71,10 +68,8 @@ void syscall__read(struct pt_regs *ctx, int fd, void* buff, size_t count) {
     events.perf_submit(ctx, ret, sizeof(struct accept_return));
 }
 
-// https://man7.org/linux/man-pages/man2/close.2.html
 void syscall__close(struct pt_regs *ctx) {
     u32 id = bpf_get_current_pid_tgid() >> 32;
     addr_in_s.delete(&id);
 }
 
-//https://man7.org/linux/man-pages/man7/bpf-helpers.7.html

@@ -1,8 +1,8 @@
 from sqlalchemy import Integer, Column, String, ForeignKey
 from sqlalchemy.orm import relationship
 
-from tracer.db.entities.base import Base
-from tracer.db.entities.request_entity import RequestEntity
+from tracer.tracer.db.entities.base import Base
+from tracer.tracer.db.entities.request_entity import RequestEntity
 
 
 class HeaderEntity(Base):

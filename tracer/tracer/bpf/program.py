@@ -2,7 +2,7 @@ from typing import Any, Dict, List
 
 from bcc import BPF
 
-from tracer.bpf.kprobe import KProbe
+from tracer.tracer.bpf.kprobe import KProbe
 
 
 class Program:

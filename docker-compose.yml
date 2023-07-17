@@ -1,18 +1,44 @@
 services:
-  tsdb:
-    container_name: influx
-    image: influxdb:1.8.10
+  db:
+    container_name: database
+    image: postgres:15.3-alpine3.18
+    ports:
+      - 5432:5432
     networks:
       - default
+
+  nginx:
+    container_name: nginx
+    image: nginx:1.25.1-alpine
     ports:
-      - "8086:8086"
-  chronograf:
-    image: chronograf:1.8.10
+      - 8090:80
     networks:
       - default
+
+  cd:
+    container_name: jenkins
+    image: jenkins/jenkins:2.414-jdk11
     ports:
-      - "8888:8888"
+      - 8080:8080
+    networks:
+      - default
+
+  node:
+    container_name: api_node
+    build: api/node
+    ports:
+      - 8081:8081
+    networks:
+      - default
+
+  python:
+    container_name: api_python
+    build: api/python
+    ports:
+      - 8082:8082
+    networks:
+      - default
 
 networks:
   default:
-    driver: bridgegit i
+    driver: bridge
