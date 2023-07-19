@@ -49,7 +49,7 @@ class MyUser(HttpUser):
     @staticmethod
     def get_db_connection():
         return psycopg2.connect(
-            host='postgres',
+            host='db',
             port=os.getenv('DATABASE_PORT'),
             dbname=os.getenv('DATABASE_NAME'),
             user=os.getenv('DATABASE_USER'),
