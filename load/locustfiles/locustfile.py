@@ -118,15 +118,8 @@ class MyUser(HttpUser):
 
         cur = conn.cursor()
 
-        first_date = os.getenv("FIRST_DATE")
-        second_date = os.getenv("SECOND_DATE")
-        first_date1 = dt.datetime.strptime(first_date, "%Y-%m-%d %H:%M:%S")
-        second_date2 = dt.datetime.strptime(second_date, "%Y-%m-%d %H:%M:%S")
-        first_date_timestamp = time.mktime(first_date1.timetuple())
-        second_date_timestamp = time.mktime(second_date2.timetuple())
-
-        query = sql.SQL("SELECT method, path, body FROM requests where timestamp_seconds BETWEEN %s AND %s")
-        cur.execute(query, (first_date_timestamp, second_date_timestamp))
+        query = sql.SQL("SELECT method, path, body FROM requests where timestamp_seconds ")
+        cur.execute(query)
 
         rows = cur.fetchall()
 
