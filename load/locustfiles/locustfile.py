@@ -50,10 +50,10 @@ class MyUser(HttpUser):
     def get_db_connection():
         return psycopg2.connect(
             host='db',
-            port=os.getenv('DATABASE_PORT'),
-            dbname=os.getenv('DATABASE_NAME'),
-            user=os.getenv('DATABASE_USER'),
-            password=os.getenv('DATABASE_PASSWORD')
+            #port=os.getenv('DATABASE_PORT'),
+            dbname='postgres',
+            user='postgres',
+            password='postgres'
         )
 
     def on_start(self):
