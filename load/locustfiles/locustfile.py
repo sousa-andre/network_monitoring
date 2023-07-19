@@ -16,7 +16,7 @@ class MyUser(HttpUser):
     total_users = 0
     aggregated_data = {}
     wait_time = between(1, 3)
-    host = "http://192.168.72.1:30009"
+    host = os.getenv("TEST_SERVER_ADDR")
 
     @staticmethod
     def get_current_time():
