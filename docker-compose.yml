@@ -6,6 +6,8 @@ services:
       - 5432:5432
     networks:
       - default
+    env_file:
+      - .postgres_env
 
   nginx:
     container_name: nginx
@@ -17,34 +19,47 @@ services:
 
   cd:
     container_name: jenkins
-    image: jenkins/jenkins:2.414-jdk11
+    image: sousandre/jenkins-docker:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - jenkins_data:/var/jenkins_home
     ports:
       - 8080:8080
     networks:
       - default
 
-  node:
-    container_name: api_node
-    build: NodeDockerfile
-    ports:
-      - 8081:8081
-    networks:
-      - default
-
-  python:
-    container_name: api_python
-    privileged: true
-    volumes:
-      - /lib/modules:/lib/modules:ro
-      - /sys:/sys:ro
-      - /usr/src:/usr/src:ro
-    build:
-      dockerfile: PythonDockerfile
-    ports:
-      - 8082:8082
-    networks:
-      - default
+  #node:
+  #  container_name: api_node
+  #  privileged: true
+  #  volumes:
+  #    - /lib/modules:/lib/modules:ro
+  #    - /sys:/sys:ro
+  #    - /usr/src:/usr/src:ro
+  #  build:
+  #    dockerfile: NodeDockerfile
+  #  ports:
+  #    - 8081:8081
+  #  networks:
+  #    - default
+#
+  #python:
+  #  container_name: api_python
+  #  privileged: true
+  #  volumes:
+  #    - /lib/modules:/lib/modules:ro
+  #    - /sys:/sys:ro
+  #    - /usr/src:/usr/src:ro
+  #  build:
+  #    dockerfile: PythonDockerfile
+  #  ports:
+  #    - 8082:8082
+  #  networks:
+  #    - default
 
 networks:
   default:
     driver: bridge
+
+
+volumes:
+  jenkins_data:

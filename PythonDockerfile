@@ -1,10 +1,12 @@
-FROM python:3.8.17-alpine
-WORKDIR /app .
+FROM alpine:3.18.2
+WORKDIR /app
 COPY ./tracer/ ./tracer
 COPY api/python .
 EXPOSE 8082
 RUN apk add bcc-tools bcc-doc
+RUN apk add py3-pip
+RUN apk add strace
 RUN pip install -r tracer/tracer/requirements.txt
 RUN pip install uvicorn
 RUN pip install -r requirements.txt
-CMD ls /usr/share/bcc/tools; uvicorn main:app & sleep 5; python -m tracer.tracer.main $(pgrep uvicorn)
+CMD python -u -m tracer.tracer.main 8082 & sleep 5; strace -o logs.txt uvicorn main:app --port 8082 --host 0.0.0.0

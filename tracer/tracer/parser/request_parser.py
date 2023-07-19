@@ -19,6 +19,9 @@ def parse_request_header_until_body(lines: List[str]):
 def parse_request(data: str):
     lines = data.splitlines()
 
+    if len(lines) < 1:
+        return None
+
     # first line
     [method, path, version] = lines.pop(0).split(' ')
 

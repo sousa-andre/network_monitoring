@@ -10,15 +10,15 @@ from tracer.tracer.db.connections.connection import engine
 from tracer.tracer.parser.request_parser import parse_request
 from tracer.tracer.utils.nanoseconds_splitter import nanoseconds_splitter
 
-
+print(f'Attaching PID {argv[1]}')
 bpf_program = Program('bpf.c', {
-    'PID': argv[1]
+    'PORT': argv[1],
 })
 
 bpf_program.attach_kprobes([
+    KProbe(events=['bind'], fnname='syscall__bind'),
     KProbe(events=['accept4', 'accept'], fnname='syscall__accept4'),
     KProbe(events=['read'], fnname='syscall__read'),
-    KProbe(events=['close'], fnname='syscall__close')
 ])
 
 
@@ -26,18 +26,23 @@ bpf_program.attach_kprobes([
 def eevent(cpu, data, size):
     event = bpf_program._bpf["events"].event(data)
     raw_data = event.request.decode('utf-8')
+    print('Raw data', raw_data)
 
     with Session(engine) as session:
         request = parse_request(raw_data)
+        if request is None:
+            return
 
         request_ent = request.to_request_entity()
 
         s, ns = nanoseconds_splitter(time_ns())
+        date_time = datetime.fromtimestamp(s)
 
         request_ent.timestamp_seconds = s
         request_ent.timestamp_nanoseconds = ns
         request_ent.read_delta_nanoseconds = event.time_diff
-        request.readable_date_time = datetime.fromtimestamp(s)
+        request_ent.readable_date = date_time.date()
+        request_ent.readable_time = date_time.time()
 
         headers_ent = request.to_header_entities()
         for header_ent in headers_ent:
@@ -49,4 +54,8 @@ def eevent(cpu, data, size):
 
 
 print('Running bcc')
-bpf_program.poll_perf()
+# bpf_program.poll_perf()
+while True:
+    fields = bpf_program._bpf.trace_fields()
+
+    print(fields)

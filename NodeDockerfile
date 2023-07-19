@@ -1,6 +1,12 @@
-FROM node:20.4.0-alpine3.18
-WORKDIR /app .
+FROM alpine:3.18.2
+WORKDIR /app
+COPY ./tracer/ ./tracer
 COPY api/node .
-EXPOSE 8081
+EXPOSE 8082
+RUN apk add bcc-tools bcc-doc
+RUN apk add py3-pip
+RUN apk add strace
+RUN pip install -r tracer/tracer/requirements.txt
+RUN apk add nodejs npm
 RUN npm install
-CMD npm start
+CMD python -u -m tracer.tracer.main 8081 & sleep 5; strace -o logs.txt npm start

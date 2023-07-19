@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, BigInteger, DateTime
+from sqlalchemy import Column, Integer, String, BigInteger, DateTime, Date, Time
 
 from tracer.tracer.db.entities.base import Base
 
@@ -13,4 +13,5 @@ class RequestEntity(Base):
     timestamp_seconds = Column(BigInteger, nullable=False)
     timestamp_nanoseconds = Column(Integer, nullable=False)
     read_delta_nanoseconds = Column(Integer)
-    readable_date_time = Column(DateTime)
+    readable_date = Column(Date, nullable=False)
+    readable_time = Column(Time, nullable=False)
