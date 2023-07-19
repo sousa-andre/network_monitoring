@@ -118,7 +118,7 @@ class MyUser(HttpUser):
 
         cur = conn.cursor()
 
-        query = sql.SQL("SELECT method, path, body FROM requests where timestamp_seconds ")
+        query = sql.SQL("SELECT method, path, body FROM requests")
         cur.execute(query)
 
         rows = cur.fetchall()
