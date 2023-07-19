@@ -16,7 +16,6 @@ class MyUser(HttpUser):
     total_users = 0
     aggregated_data = {}
     wait_time = between(1, 3)
-    host = os.getenv("TEST_SERVER_ADDR")
 
     @staticmethod
     def get_current_time():
@@ -30,13 +29,7 @@ class MyUser(HttpUser):
         self.response_time_data = {}
         self.db_connection = None
 
-        with psycopg2.connect(
-                host='containers-us-west-195.railway.app',
-                port='7918',
-                dbname='postgres',
-                user='postgres',
-                password='rw1xL8jEw2KOKfZe9HZc'
-        ) as connection:
+        with self.get_db_connection() as connection:
             with connection.cursor() as cursor:
                 cursor.execute("""
                     CREATE TABLE IF NOT EXISTS locustData (
@@ -53,19 +46,23 @@ class MyUser(HttpUser):
                 """)
             connection.commit()
 
+    @staticmethod
+    def get_db_connection():
+        return psycopg2.connect(
+            host=os.getenv('DATABASE_HOST'),
+            port=os.getenv('DATABASE_PORT'),
+            dbname=os.getenv('DATABASE_NAME'),
+            user=os.getenv('DATABASE_USER'),
+            password=os.getenv('DATABASE_PASSWORD')
+        )
+
     def on_start(self):
         self.rps_data = []
         self.time_data = []
         self.response_time_data = {}
         MyUser.total_users = MyUser.total_users + 1
 
-        self.db_connection = psycopg2.connect(
-            host='containers-us-west-195.railway.app',
-            port='7918',
-            dbname='postgres',
-            user='postgres',
-            password='rw1xL8jEw2KOKfZe9HZc'
-        )
+        self.db_connection = self.get_db_connection()
 
     def on_stop(self):
         MyUser.user_count += 1
@@ -117,13 +114,7 @@ class MyUser(HttpUser):
 
     @task
     def test_api(self):
-        conn = psycopg2.connect(
-            host='containers-us-west-195.railway.app',
-            port='7918',
-            dbname='postgres',
-            user='postgres',
-            password='rw1xL8jEw2KOKfZe9HZc'
-        )
+        conn = self.get_db_connection()
 
         cur = conn.cursor()
 
