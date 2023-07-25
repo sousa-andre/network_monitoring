@@ -21,7 +21,9 @@ pipeline {
         }
         stage("Run locust") {
             steps {
-                sh "export DATABASE_HOST=abcd;export DATABASE_PORT=5432;export DATABASE_USERNAME=postgres; DATABASE_PASSWORD=postgres;locust --headless -f load/locustfiles/locustfile.py  --host http://nginx -u 200"
+                withCredentials(usernamePassword[credentialsId: "database", usernameVariable: "DATABASE_USERNAME", passwordVariable: "PASSWORD_VARIABLE"]) {
+                    sh "locust --headless -f load/locustfiles/locustfile.py  --host http://nginx -u 200"
+                }
             }
         }
     }
