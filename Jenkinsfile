@@ -16,12 +16,12 @@ pipeline {
         }
         stage("Python dependencies installation") {
             steps {
-                sh "pip install -r network_monitoring/load/requirements.txt"
+                sh "pip install -r load/requirements.txt"
             }
         }
         stage("Run locust") {
             steps {
-                sh "export DATABASE_HOST=abcd;export DATABASE_PORT=5432;export DATABASE_USERNAME=postgres; DATABASE_PASSWORD=postgres;locust --headless -f network_monitoring/load/locustfiles/locustfile.py  --host http://nginx -u 200"
+                sh "export DATABASE_HOST=abcd;export DATABASE_PORT=5432;export DATABASE_USERNAME=postgres; DATABASE_PASSWORD=postgres;locust --headless -f load/locustfiles/locustfile.py  --host http://nginx -u 200"
             }
         }
     }
