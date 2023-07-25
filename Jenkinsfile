@@ -21,7 +21,7 @@ pipeline {
         }
         stage("Run locust") {
             steps {
-                withCredentials([usernamePassword(credentialsId: "database", usernameVariable: "DATABASE_USERNAME", passwordVariable: "DATABASE_PASSWORD")]) {
+                withCredentials([usernamePassword(credentialsId: "database", usernameVariable: "DATABASE_USER", passwordVariable: "DATABASE_PASSWORD")]) {
                     sh "locust --headless -f load/locustfiles/locustfile.py  --host http://nginx -u 200"
                 }
             }
