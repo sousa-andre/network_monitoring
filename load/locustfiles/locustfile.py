@@ -6,15 +6,24 @@ import datetime as dt
 import datetime
 import psycopg2
 from psycopg2 import sql
-from dotenv import load_dotenv
 
-load_dotenv()
+LOOKUP_DATE_RANGE = '2023-07-10 12:00:00', '2023-07-29 14:00:00'
+
+
+def get_connection():
+    return psycopg2.connect(
+        host=os.getenv('DATABASE_HOST'),
+        port=os.getenv('DATABASE_PORT'),
+        dbname=os.getenv('DATABASE_DBNAME'),
+        user=os.getenv('DATABASE_USER'),
+        password=os.getenv('DATABASE_PASSWORD')
+    )
 
 
 class MyUser(HttpUser):
-    user_count=0
+    user_count = 0
     total_users = 0
-    aggregated_data={}
+    aggregated_data = {}
     response_time_data = {}
     wait_time = between(1, 3)
 
@@ -29,13 +38,7 @@ class MyUser(HttpUser):
         self.time_data = []
         self.db_connection = None
 
-        with psycopg2.connect(
-            host='containers-us-west-195.railway.app',
-            port='7918',
-            dbname='postgres',
-            user='postgres',
-            password='rw1xL8jEw2KOKfZe9HZc'
-        ) as connection:
+        with get_connection() as connection:
             with connection.cursor() as cursor:
                 cursor.execute("""
                     CREATE TABLE IF NOT EXISTS locustData (
@@ -56,82 +59,71 @@ class MyUser(HttpUser):
     def on_start(self):
         self.rps_data = []
         self.time_data = []
-        MyUser.total_users=MyUser.total_users+1
+        MyUser.total_users = MyUser.total_users + 1
 
-        self.db_connection = psycopg2.connect(
-            host='containers-us-west-195.railway.app',
-            port='7918',
-            dbname='postgres',
-            user='postgres',
-            password='rw1xL8jEw2KOKfZe9HZc'
-        )
+        self.db_connection = get_connection()
 
     def on_stop(self):
-        MyUser.user_count+=1
+        MyUser.user_count += 1
 
         with self.db_connection.cursor() as cursor:
-                for request_name, data in MyUser.response_time_data.items():
-                    if request_name not in MyUser.aggregated_data:
-                        MyUser.aggregated_data[request_name] = {
-                            "request_count": 0,
-                            "failure_count": 0,
-                            "response_times": []
-                        }
+            for request_name, data in MyUser.response_time_data.items():
+                if request_name not in MyUser.aggregated_data:
+                    MyUser.aggregated_data[request_name] = {
+                        "request_count": 0,
+                        "failure_count": 0,
+                        "response_times": []
+                    }
 
-                    MyUser.aggregated_data[request_name]["request_count"] += data["request_count"]
-                    MyUser.aggregated_data[request_name]["failure_count"] += self.environment.stats.entries.get(request_name, {}).get("fail", 0)
-                    MyUser.aggregated_data[request_name]["response_times"].extend(data["response_time"])
-                if MyUser.user_count == MyUser.total_users:
-                    for request_name, data in MyUser.aggregated_data.items():
-                        url = request_name
-                        request_count = data["request_count"]
-                        failure_count = data["failure_count"]
-                        response_times = data["response_times"]
-                        avg_response_time = sum(response_times) / len(response_times)
-                        min_response_time = min(response_times)
-                        max_response_time = max(response_times)
-                        median_response_time = statistics.median(response_times)
-                        date_obj = dt.datetime.strptime(self.get_current_time(), '%Y-%m-%d %H:%M:%S')
-                        unix_timestamp = int(date_obj.timestamp())
+                MyUser.aggregated_data[request_name]["request_count"] += data["request_count"]
+                MyUser.aggregated_data[request_name]["failure_count"] += self.environment.stats.entries.get(
+                    request_name, {}).get("fail", 0)
+                MyUser.aggregated_data[request_name]["response_times"].extend(data["response_time"])
+            if MyUser.user_count == MyUser.total_users:
+                for request_name, data in MyUser.aggregated_data.items():
+                    url = request_name
+                    request_count = data["request_count"]
+                    failure_count = data["failure_count"]
+                    response_times = data["response_times"]
+                    avg_response_time = sum(response_times) / len(response_times)
+                    min_response_time = min(response_times)
+                    max_response_time = max(response_times)
+                    median_response_time = statistics.median(response_times)
+                    date_obj = dt.datetime.strptime(self.get_current_time(), '%Y-%m-%d %H:%M:%S')
+                    unix_timestamp = int(date_obj.timestamp())
 
-                        query = sql.SQL("""
+                    query = sql.SQL("""
                             INSERT INTO locustData (url, date, timestamp, request_count, failure_count, avg_response_time, min_response_time, max_response_time, median_response_time)
                             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                         """)
 
-                        cursor.execute(query, (url, unix_timestamp, self.get_current_time(), request_count, failure_count, avg_response_time, min_response_time, max_response_time, median_response_time))
+                    cursor.execute(query, (
+                        url, unix_timestamp, self.get_current_time(), request_count, failure_count, avg_response_time,
+                        min_response_time, max_response_time, median_response_time))
 
         self.db_connection.commit()
         self.db_connection.close()
 
     @task
     def test_api(self):
-        conn = psycopg2.connect(
-            host='containers-us-west-195.railway.app',
-            port='7918',
-            dbname='postgres',
-            user='postgres',
-            password='rw1xL8jEw2KOKfZe9HZc'
-        )
-
+        conn = get_connection()
         cur = conn.cursor()
-        
-        FirstDate=os.getenv("FirstDate")
-        SecondDate=os.getenv("SecondDate")
-        FirstDate1 = dt.datetime.strptime(FirstDate, "%Y-%m-%d %H:%M:%S")
-        SecondDate2 = dt.datetime.strptime(SecondDate, "%Y-%m-%d %H:%M:%S")
-        FirstDateTimestamp=time.mktime(FirstDate1.timetuple())
-        SecondDateTimestamp=time.mktime(SecondDate2.timetuple())
+
+        first_date, second_date = LOOKUP_DATE_RANGE
+        first_date1 = dt.datetime.strptime(first_date, "%Y-%m-%d %H:%M:%S")
+        second_date2 = dt.datetime.strptime(second_date, "%Y-%m-%d %H:%M:%S")
+        first_date_timestamp = time.mktime(first_date1.timetuple())
+        second_date_timestamp = time.mktime(second_date2.timetuple())
 
         query = sql.SQL("SELECT method, path, body FROM testerequest where timestamp_seconds BETWEEN %s AND %s")
-        cur.execute(query, (FirstDateTimestamp,SecondDateTimestamp))
-        
+        cur.execute(query, (first_date_timestamp, second_date_timestamp))
+
         rows = cur.fetchall()
 
         for row in rows:
             method, path, body = row
 
-            response=self.client.request(method, path, data=body)
+            response = self.client.request(method, path, data=body)
 
             self.add_request_data(path, response.elapsed.total_seconds())
         cur.close()
