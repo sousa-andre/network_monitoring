@@ -115,7 +115,7 @@ class MyUser(HttpUser):
         first_date_timestamp = time.mktime(first_date1.timetuple())
         second_date_timestamp = time.mktime(second_date2.timetuple())
 
-        query = sql.SQL("SELECT method, path, body FROM testerequest where timestamp_seconds BETWEEN %s AND %s")
+        query = sql.SQL("SELECT method, path, body FROM requests  where timestamp_seconds BETWEEN %s AND %s")
         cur.execute(query, (first_date_timestamp, second_date_timestamp))
 
         rows = cur.fetchall()
