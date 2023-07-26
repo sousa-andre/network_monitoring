@@ -110,7 +110,7 @@ class MyUser(HttpUser):
                         min_response_time, max_response_time, median_response_time))
 
         self.db_connection.commit()
-        self.db_connection.close()
+        # self.db_connection.close()
 
     @task
     def test_api(self):
@@ -135,7 +135,7 @@ class MyUser(HttpUser):
 
             self.add_request_data(path, response.elapsed.total_seconds())
         cur.close()
-        conn.close()
+        # conn.close()
 
     def add_request_data(self, request_name, elapsed_time):
         self.rps_data.append(1)
