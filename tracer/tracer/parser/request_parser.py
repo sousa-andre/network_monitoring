@@ -22,8 +22,12 @@ def parse_request(data: str):
     if len(lines) < 1:
         return None
 
+    v = lines.pop(0).split(' ')
+    if len(v) < 3:
+        return None
+
     # first line
-    [method, path, version] = lines.pop(0).split(' ')
+    [method, path, version] = v
 
     headers = parse_request_header_until_body(lines)
     body = lines[0] if len(lines) > 0 else None

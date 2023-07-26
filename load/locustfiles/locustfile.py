@@ -10,14 +10,22 @@ from psycopg2 import sql
 LOOKUP_DATE_RANGE = '2023-07-10 12:00:00', '2023-07-29 14:00:00'
 
 
-def get_connection():
-    return psycopg2.connect(
+def get_connection_func():
+    connection = psycopg2.connect(
         host=os.getenv('DATABASE_HOST'),
         port=os.getenv('DATABASE_PORT'),
         dbname=os.getenv('DATABASE_DBNAME'),
         user=os.getenv('DATABASE_USER'),
         password=os.getenv('DATABASE_PASSWORD')
     )
+
+    def connection_inner():
+        return connection
+
+    return connection_inner
+
+
+get_connection = get_connection_func()
 
 
 class MyUser(HttpUser):

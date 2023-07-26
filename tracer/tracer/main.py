@@ -10,7 +10,7 @@ from tracer.tracer.db.connections.connection import engine
 from tracer.tracer.parser.request_parser import parse_request
 from tracer.tracer.utils.nanoseconds_splitter import nanoseconds_splitter
 
-print(f'Attaching PID {argv[1]}')
+print(f'Attaching PORT {argv[1]}')
 bpf_program = Program('bpf.c', {
     'PORT': argv[1],
 })
@@ -25,14 +25,17 @@ bpf_program.attach_kprobes([
 @bpf_program.perf_buffer
 def eevent(cpu, data, size):
     event = bpf_program._bpf["events"].event(data)
-    raw_data = event.request.decode('utf-8')
+    try:
+        raw_data = event.request.decode('utf-8')
+    except UnicodeDecodeError:
+        return
+    request = parse_request(raw_data)
+    if request is None:
+        return
+
     print('Raw data', raw_data)
 
     with Session(engine) as session:
-        request = parse_request(raw_data)
-        if request is None:
-            return
-
         request_ent = request.to_request_entity()
 
         s, ns = nanoseconds_splitter(time_ns())
@@ -54,8 +57,8 @@ def eevent(cpu, data, size):
 
 
 print('Running bcc')
-# bpf_program.poll_perf()
-while True:
-    fields = bpf_program._bpf.trace_fields()
+bpf_program.poll_perf()
+#while True:
+#    fields = bpf_program._bpf.trace_fields()
 
-    print(fields)
+#    print(fields)

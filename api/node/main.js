@@ -1,12 +1,11 @@
 const express = require('express')
 
-const PORT = 8081
+const PORT = 8082
 const app = express()
 
-console.log(`PID: ${process.pid}`)
 
 app.get('/', (req, res) => {
     res.json({content: "hello world"})
 })
 
-app.listen(PORT, () => console.log(`running on port ${PORT}`))
+app.listen(PORT, '0.0.0.0', () => console.log(`Running Express server on port ${PORT}`))

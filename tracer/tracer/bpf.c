@@ -7,12 +7,10 @@
 // https://github.com/openbsd/src/blob/master/sys/sys/_types.h#L61
 // https://github.com/pixie-io/pixie/blob/main/src/stirling/source_connectors/socket_tracer/bcc_bpf/socket_trace.c
 
-// TODO: replace with the proper header
-// typedef unsigned int socklen_t;
 #define socklen_t size_t
 
 struct accept_sys_args {
-    u16 sin_port;
+    u16 sin_port
     u64 accept_ts;
 };
 
@@ -36,14 +34,14 @@ void syscall__bind(struct pt_regs *ctx, int sockfd, struct sockaddr *addr) {
     addr_in = (struct sockaddr_in*)addr;
 
     bpf_probe_read_user(&port, sizeof(port), &addr_in->sin_port);
-    bpf_trace_printk("port %d", htons(port));
+    // bpf_trace_printk("port %d", htons(port));
 
     struct accept_sys_args accept_arg  = {
        .sin_port = port
     };
 
    if (htons(accept_arg.sin_port) == PORT) {
-        bpf_trace_printk("saved port");
+        // bpf_trace_printk("saved port");
         addr_in_s.update(&id, &accept_arg);
    }
 }
@@ -60,7 +58,7 @@ void syscall__accept4(
     struct accept_sys_args* accept = addr_in_s.lookup(&id);
     if (accept == NULL) return;
     accept->accept_ts = bpf_ktime_get_ns();
-    bpf_trace_printk("accept yo");
+   // bpf_trace_printk("accept yo");
 
     // https://github.com/torvalds/linux/blob/master/include/uapi/linux/in.h#L256
 
@@ -76,7 +74,7 @@ void syscall__read(struct pt_regs *ctx, int fd, void* buff, size_t count) {
          return;
      }
 
-     bpf_trace_printk("ABC '%s'", (char*)buff);
+     //bpf_trace_printk("ABC '%s'", (char*)buff);
 
     struct accept_return* ret = returns.lookup(&index);
     if (ret == NULL) {
